@@ -1,0 +1,111 @@
+{
+  "name": "team-07 · Demo",
+  "nodes": [
+    {
+      "id": "d4",
+      "name": "Demo day forecast",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "alwaysOutputData": true,
+      "position": [
+        300,
+        40
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select d.date::text as date, d.forecast, d.previous_year, (now() at time zone 'Europe/Vienna')::date::text as real_today\nfrom public.team_07_stays_daily d\nwhere d.date >= (now() at time zone 'Europe/Vienna')::date and d.forecast >= 10000\norder by d.date limit 1;",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "id": null,
+          "name": "TTF Supabase Postgres"
+        }
+      }
+    },
+    {
+      "id": "d5",
+      "name": "Build demo record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        40
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// DUMMY actual guest nights for today's demo, correlated to the forecast of the demo day.\n// Change SCENARIO ('drop' | 'rise' | 'normal') or PCT before pressing Execute workflow.\n// Nothing is written to the database: the next node posts the record to the webhook the app listens to.\nconst SCENARIO = 'drop';\nconst PCT = null; // null = default: drop 35, rise 25, normal 2\n\nconst row = $input.first().json || {};\nif (!row.date || row.forecast === undefined || row.forecast === null) {\n  throw new Error('No day with a usable forecast found.');\n}\nconst pct = PCT || (SCENARIO === 'rise' ? 25 : SCENARIO === 'normal' ? 2 : 35);\nconst forecast = Number(row.forecast);\nconst actual = Math.max(0, Math.round(forecast * (SCENARIO === 'rise' ? 1 + pct / 100 : 1 - pct / 100)));\nconst record = {\n  ok: true, demo: true, source: 'n8n demo trigger',\n  date: row.date, real_today: row.real_today, shifted: row.date !== row.real_today,\n  forecast, previous_year: row.previous_year === null ? null : Number(row.previous_year),\n  actual, deviation_pct: forecast ? Math.round(((actual - forecast) / forecast) * 1000) / 10 : null,\n  scenario: SCENARIO, pct, pushed_at: new Date().toISOString(),\n};\nreturn [{ json: { record } }];"
+      }
+    },
+    {
+      "id": "m1",
+      "name": "Execute workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        40
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "d13",
+      "name": "Push to UI feed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        40
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.oi.destination.one/webhook/team-07-demo-push",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.record) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Execute workflow": {
+      "main": [
+        [
+          {
+            "node": "Demo day forecast",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo day forecast": {
+      "main": [
+        [
+          {
+            "node": "Build demo record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build demo record": {
+      "main": [
+        [
+          {
+            "node": "Push to UI feed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Europe/Vienna",
+    "executionOrder": "v1"
+  }
+}

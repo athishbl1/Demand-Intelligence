@@ -1,0 +1,721 @@
+@import "tailwindcss";
+
+/* ==================================================================
+ * Look and building blocks for all pages
+ * ==================================================================
+ *
+ * Base look: the ischgl.com theme on white. White and light grey surfaces,
+ * near-black text (#1a1a1a), DM Sans for text, a heavy squared display face
+ * (Saira, standing in for Eurostile Heavy) for uppercase headlines and
+ * buttons, square corners and the Ischgl crimson #bb1c3f as the ONE accent
+ * colour. Main buttons have the cut-off top-right corner of ischgl.com.
+ * The accent lives in lib/app.ts (APP.accent) and reaches <html> as --accent
+ * via app/layout.tsx. --accent-light and --accent-dark are computed from it.
+ * For another colour change lib/app.ts, not this file.
+ *
+ * The components use Tailwind colour classes. Two palettes are re-mapped
+ * below: slate is the neutral Ischgl grey scale and sky is the crimson.
+ *
+ * Building blocks (className="..."):
+ *
+ *   page-title     page title on <h1>, with a short bar in the accent colour
+ *   eyebrow        small uppercase label above a headline, with a crimson dash
+ *   card           white surface with border, for forms and results
+ *   label          label above a field: <label htmlFor="town" className="label">
+ *   field          input, select or textarea
+ *   btn            main button, crimson with cut corner (one per form)
+ *   btn-secondary  secondary button, outlined (reset, cancel, download)
+ *   btn-ghost      text button with an arrow-friendly underline on hover
+ *   notice         light box in the accent colour for results and hints
+ *   notice-error   red box for error messages, add role="alert"
+ *   table-wrap     on a <div> around a <table>. A table that is too wide
+ *                  scrolls inside its box, the page itself stays still.
+ *   badge-green / badge-yellow / badge-red / badge-gray   status badges
+ *   spinner        spinning circle while waiting, on an empty <span>
+ *   skeleton       grey shimmering placeholder, set the height with Tailwind
+ *   container-page centred page width with side gutters
+ *   reveal         fades in when scrolled into view (see components/ui/Reveal)
+ *   cut-corner     cuts the top-right corner off any box
+ *   text-outline   outlined display text for big decorative words
+ *
+ * Layout and spacing with Tailwind (flex, grid, gap-4, mt-6, sm:grid-cols-2 ...).
+ * Colour classes that match the look: text-accent, bg-accent, bg-accent-light,
+ * border-accent, text-muted (grey text), border-line, bg-surface-muted.
+ * ================================================================== */
+
+/* Colours as Tailwind classes. "inline" means: the classes read the variables
+   directly, so a different accent colour from lib/app.ts applies at once. */
+@theme inline {
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dark: var(--accent-dark);
+  --color-muted: var(--text-muted);
+  --color-line: var(--line);
+  --color-surface-muted: var(--surface-muted);
+  --font-sans: var(--font);
+  --font-display: var(--font-heading);
+}
+
+/* Ischgl palette for the Tailwind colour classes used in the components */
+@theme {
+  /* Neutrals: the ischgl.com greys */
+  --color-slate-50: #f8f9fa;
+  --color-slate-100: #f1f2f4;
+  --color-slate-200: #e4e6e9;
+  --color-slate-300: #cfd2d6;
+  --color-slate-400: #a3a7ad;
+  --color-slate-500: #6f747a;
+  --color-slate-600: #55595e;
+  --color-slate-700: #3f4246;
+  --color-slate-800: #313131;
+  --color-slate-900: #1a1a1a;
+  --color-slate-950: #111111;
+
+  /* Brand (sky): Ischgl crimson */
+  --color-sky-50: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  --color-sky-100: color-mix(in srgb, var(--accent) 12%, #ffffff);
+  --color-sky-200: color-mix(in srgb, var(--accent) 24%, #ffffff);
+  --color-sky-300: color-mix(in srgb, var(--accent) 42%, #ffffff);
+  --color-sky-400: color-mix(in srgb, var(--accent) 70%, #ffffff);
+  --color-sky-500: var(--accent);
+  --color-sky-600: var(--accent);
+  --color-sky-700: color-mix(in srgb, var(--accent) 86%, #000000);
+  --color-sky-800: color-mix(in srgb, var(--accent) 72%, #000000);
+  --color-sky-900: color-mix(in srgb, var(--accent) 58%, #000000);
+  --color-sky-950: color-mix(in srgb, var(--accent) 45%, #000000);
+
+  /* Square corners like ischgl.com; rounded-full stays round */
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-marquee-reverse: marquee 44s linear infinite reverse;
+}
+
+:root {
+  /* Accent colour. app/layout.tsx overrides it with APP.accent from lib/app.ts. */
+  --accent: #bb1c3f;
+  /* Computed from it, do not set by hand. */
+  --accent-light: color-mix(in srgb, var(--accent) 7%, #ffffff);
+  --accent-border: color-mix(in srgb, var(--accent) 28%, #ffffff);
+  --accent-dark: color-mix(in srgb, var(--accent) 82%, #000000);
+  --on-accent: #ffffff; /* text on the accent colour */
+
+  --background: #ffffff;
+  --surface: #ffffff; /* cards and fields */
+  --surface-muted: #f4f5f7; /* ischgl.com light section background */
+  --line: #e4e6e9; /* thin lines and borders */
+  --line-field: #cfd2d6; /* border of input fields */
+  --text: #1a1a1a;
+  --text-muted: #6f747a;
+
+  --radius: 0px;
+  --cut: 0.75rem; /* cut-off top-right corner of the main buttons */
+  --shadow-premium: 0 1px 2px rgb(17 17 17 / 0.04), 0 18px 40px -18px rgb(17 17 17 / 0.18);
+  --font: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-saira), var(--font);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    background: var(--background);
+    accent-color: var(--accent);
+    font-family: var(--font);
+    scroll-behavior: smooth;
+    scroll-padding-top: 8rem;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-wrap: break-word;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+  /* Big headlines in capitals, as on ischgl.com */
+  h1,
+  h2 {
+    text-transform: uppercase;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.15s ease, opacity 0.15s ease;
+  }
+
+  button,
+  .btn,
+  .btn-secondary,
+  a.btn,
+  a.btn-secondary {
+    text-decoration: none !important;
+  }
+
+  code {
+    background: var(--surface-muted);
+    border-radius: 2px;
+    padding: 0.1em 0.35em;
+    font-size: 0.9em;
+  }
+
+  pre {
+    background: var(--surface-muted);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  input[type="range"] {
+    accent-color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    /* The spinner keeps turning, only slower: it shows that something is happening. */
+    .spinner {
+      animation-duration: 1.5s !important;
+      animation-iteration-count: infinite !important;
+    }
+  }
+}
+
+@layer components {
+  /* Jump to the content for keyboard and screen reader users, first element in the body */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    background: var(--accent);
+    color: var(--on-accent);
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+  }
+  .skip-link:focus {
+    left: 0;
+  }
+
+  .container-page {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 40rem) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* Page title with a short bar in the accent colour */
+  .page-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .page-title::after {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 4px;
+    margin-top: 0.875rem;
+    background: var(--accent);
+  }
+
+  /* Small uppercase label above a headline */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 1.75rem;
+    height: 2px;
+    background: currentColor;
+  }
+
+  /* White surface with border */
+  .card {
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px rgb(17 17 17 / 0.04);
+    transition:
+      box-shadow 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s ease;
+  }
+  @media (min-width: 40rem) {
+    .card {
+      padding: 1.5rem;
+    }
+  }
+
+  .label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Inputs, selects, textareas. Font size 16px, so that phones do not zoom in. */
+  .field {
+    display: block;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text);
+    background-color: var(--surface);
+    border: 1px solid var(--line-field);
+    border-radius: var(--radius);
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .field::placeholder {
+    color: var(--color-slate-400);
+  }
+  .field:hover {
+    border-color: var(--text-muted);
+  }
+  .field:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+  .field:disabled {
+    background-color: var(--surface-muted);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+  textarea.field {
+    min-height: 6rem;
+    resize: vertical;
+  }
+  select.field:not([multiple]):not([size]) {
+    appearance: none;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236f747a'%3E%3Cpath d='M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+  }
+
+  /* Buttons: .btn crimson for the main action, .btn-secondary outlined for everything else */
+  .btn,
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 3rem;
+    padding: 0.5rem 1.5rem;
+    border: 1.5px solid transparent;
+    border-radius: var(--radius);
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s,
+      filter 0.2s,
+      transform 0.2s;
+  }
+  .btn {
+    background-color: var(--accent);
+    color: var(--on-accent);
+    padding-right: calc(1.5rem + var(--cut));
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  }
+  .btn:hover:not(:disabled) {
+    background-color: var(--accent-dark);
+    color: var(--on-accent);
+  }
+  .btn:active:not(:disabled),
+  .btn-secondary:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .btn-secondary {
+    background-color: transparent;
+    border-color: var(--text);
+    color: var(--text);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--text);
+    color: #ffffff;
+  }
+  .btn:disabled,
+  .btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-heading);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-size: 0% 2px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    padding-bottom: 2px;
+    transition:
+      background-size 0.3s ease,
+      color 0.2s;
+  }
+  .btn-ghost:hover {
+    background-size: 100% 2px;
+    color: var(--accent);
+  }
+
+  /* Light box for results and hints */
+  .notice {
+    background: var(--accent-light);
+    border: 1px solid var(--accent-border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 0.875rem 1rem;
+    color: var(--text);
+  }
+
+  /* Error message */
+  .notice-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 3px solid #dc2626;
+    border-radius: var(--radius);
+    padding: 0.875rem 1rem;
+    color: #991b1b;
+  }
+
+  /* Table: class on a <div> around the <table>. Tables that are too wide scroll inside it. */
+  .table-wrap {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .table-wrap table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  table.table-wrap {
+    display: block;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .table-wrap th {
+    background: var(--surface-muted);
+    border-bottom: 1px solid var(--line);
+    padding: 0.625rem 0.875rem;
+    text-align: left;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .table-wrap td {
+    max-width: 20rem;
+    border-bottom: 1px solid var(--line);
+    padding: 0.625rem 0.875rem;
+    vertical-align: top;
+  }
+  .table-wrap tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .table-wrap tbody tr:hover td {
+    background: var(--color-slate-50);
+  }
+
+  /* Status badges like a traffic light. The dot shows the colour, the word the meaning. */
+  .badge-green,
+  .badge-yellow,
+  .badge-red,
+  .badge-gray {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .badge-green::before,
+  .badge-yellow::before,
+  .badge-red::before,
+  .badge-gray::before {
+    content: "";
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--badge-dot);
+  }
+  .badge-green {
+    --badge-dot: #10b981;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+  }
+  .badge-yellow {
+    --badge-dot: #f59e0b;
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+  .badge-red {
+    --badge-dot: #ef4444;
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+  .badge-gray {
+    --badge-dot: #a3a7ad;
+    background: #f1f2f4;
+    border-color: #e4e6e9;
+    color: #3f4246;
+  }
+
+  /* Waiting: spinning circle and shimmering placeholder */
+  .spinner {
+    display: inline-block;
+    flex: none;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: -0.125em;
+    animation: spinner-turn 0.7s linear infinite;
+  }
+  .skeleton {
+    display: block;
+    min-height: 1rem;
+    border-radius: var(--radius);
+    background: linear-gradient(90deg, var(--surface-muted) 0%, #e9ebee 50%, var(--surface-muted) 100%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
+  /* Fades in when scrolled into view */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .cut-corner {
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  }
+  .cut-corner-lg {
+    --cut: 2.25rem;
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  }
+
+  /* The text colour (text-slate-300 ...) becomes the outline colour */
+  .text-outline {
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 1.5px currentColor;
+  }
+
+  /* Card that lights up under the pointer (components/ui/SpotlightCard) */
+  .spotlight {
+    position: relative;
+    isolation: isolate;
+  }
+  .spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      transparent 60%
+    );
+    transition: opacity 0.3s ease;
+  }
+  .spotlight:hover::before {
+    opacity: 1;
+  }
+
+  /* Marquee row, pauses on hover */
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Subtle dotted grid for hero and panel backgrounds */
+  .bg-dots {
+    background-image: radial-gradient(rgb(17 17 17 / 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+/* Main call-to-action links and buttons in the components: ischgl.com button style */
+@layer utilities {
+  a.bg-sky-600,
+  button.bg-sky-600,
+  a.bg-slate-900,
+  button.bg-slate-900 {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  }
+}
+
+@keyframes spinner-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+@keyframes draw-check {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

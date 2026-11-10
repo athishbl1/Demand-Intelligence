@@ -1,0 +1,87 @@
+{
+  "name": "team-07 · API overview",
+  "nodes": [
+    {
+      "id": "wh",
+      "name": "Webhook",
+      "webhookId": "team-07-overview-wh",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "team-07-overview",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      }
+    },
+    {
+      "id": "pg",
+      "name": "Query overview",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "with m as (select * from public.team_07_metrics_daily),\nwk as (\n  select to_char(date, 'IYYY-\"W\"IW') as week, min(date) as week_start, max(date) as week_end, count(*) as days,\n    count(*) filter (where actual is not null) as days_with_actual,\n    sum(actual) as actual, sum(forecast) as forecast, sum(previous_year) as previous_year,\n    sum(forecast) filter (where actual is not null) as forecast_cmp,\n    sum(previous_year) filter (where actual is not null) as previous_year_cmp,\n    round(avg(occupancy), 4) as occupancy,\n    count(*) filter (where quality_flag = 'red') as red_days,\n    count(*) filter (where quality_flag = 'yellow') as yellow_days\n  from m group by 1\n),\nwk2 as (\n  select wk.*,\n    case when days_with_actual > 0 then actual - forecast_cmp end as gap_fc,\n    case when days_with_actual > 0 and forecast_cmp > 0 then round((actual - forecast_cmp)::numeric / forecast_cmp * 100, 1) end as gap_fc_pct,\n    case when days_with_actual > 0 then actual - previous_year_cmp end as gap_py,\n    case when days_with_actual > 0 and previous_year_cmp > 0 then round((actual - previous_year_cmp)::numeric / previous_year_cmp * 100, 1) end as gap_py_pct,\n    forecast - previous_year as fc_vs_py,\n    case when previous_year > 0 then round((forecast - previous_year)::numeric / previous_year * 100, 1) end as fc_vs_py_pct\n  from wk\n),\nk as (\n  select sum(actual) as actual, sum(forecast) as forecast, sum(previous_year) as previous_year, round(avg(occupancy), 4) as occupancy\n  from m where date between '2025-11-24' and '2026-05-03'\n),\nkn as (\n  select sum(forecast) as forecast, sum(previous_year) as previous_year\n  from m where date between '2026-11-23' and '2027-04-04'\n),\n-- holidays expanded to one row per (market, region code, day); '*' = whole country\nhx as (\n  select h.market, trim(code) as code, d::date as day, h.type\n  from public.team_07_holidays h\n  cross join lateral unnest(string_to_array(coalesce(h.region, '*'), ',')) as code\n  cross join lateral generate_series(h.start_date, h.end_date, interval '1 day') as d\n  where h.type like 'school:%'\n),\nhtot as (select market, greatest(count(distinct code) filter (where code <> '*'), 1) as total from hx group by 1),\nhw as (\n  select to_char(hx.day, 'IYYY-\"W\"IW') as week, hx.market,\n    least(1, round((count(distinct (hx.day, hx.code)) filter (where hx.code <> '*')::numeric\n       + count(distinct hx.day) filter (where hx.code = '*') * t.total) / (7 * t.total), 2)) as coverage,\n    count(distinct hx.day) as days,\n    array_agg(distinct regexp_replace(hx.type, '^school: ', '')) as names\n  from hx join htot t using (market)\n  group by 1, 2, t.total\n),\npub as (\n  select to_char(d::date, 'IYYY-\"W\"IW') as week,\n    array_agg(distinct h.market || ': ' || regexp_replace(h.type, '^(public|easter): ', '')) as names\n  from public.team_07_holidays h\n  cross join lateral generate_series(h.start_date, h.end_date, interval '1 day') as d\n  where h.type like 'public:%' or h.type like 'easter:%'\n  group by 1\n),\nhol as (\n  select w.week,\n    coalesce((select json_object_agg(hw.market, json_build_object('coverage', hw.coverage, 'days', hw.days, 'names', hw.names))\n              from hw where hw.week = w.week), '{}'::json) as markets,\n    coalesce((select to_json(p.names) from pub p where p.week = w.week), '[]'::json) as public_holidays\n  from wk w\n),\nev as (\n  select w.week, count(distinct e.name) as count,\n    coalesce(json_agg(distinct jsonb_build_object('name', e.name, 'village', e.village, 'date', e.date)) filter (where e.top_event), '[]'::json) as top\n  from wk w join public.team_07_events e on e.date <= w.week_end and e.end_date >= w.week_start\n  group by 1\n),\nwx as (\n  select w.week, round(sum(x.snowfall_cm), 1) as snowfall_cm, round(avg(x.temp_max), 1) as temp_max_avg,\n    round(avg(x.temp_min), 1) as temp_min_avg, count(*) filter (where x.precip_mm >= 1) as wet_days, count(*) as days\n  from wk w join public.team_07_weather_daily x on x.date between w.week_start and w.week_end\n  group by 1\n),\nlt0 as (\n  select week_start,\n    coalesce(bookings_0_days_ahead, 0) as d0, coalesce(bookings_8_days_ahead, 0) as d8, coalesce(bookings_31_days_ahead, 0) as d31,\n    coalesce(bookings_61_days_ahead, 0) as d61, coalesce(bookings_90_days_ahead, 0) as d90, coalesce(bookings_180_days_ahead, 0) as d180\n  from public.team_07_lead_time\n),\nlt as (\n  select s.season, sum(d0) as d0, sum(d8) as d8, sum(d31) as d31, sum(d61) as d61, sum(d90) as d90, sum(d180) as d180,\n    sum(d0 + d8 + d31 + d61 + d90 + d180) as total\n  from lt0 join (values ('Winter 2023/24', date '2023-11-27', date '2024-05-05'),\n                        ('Winter 2024/25', date '2024-11-25', date '2025-05-04'),\n                        ('Winter 2025/26', date '2025-11-24', date '2026-05-03')) as s(season, a, b)\n    on lt0.week_start between s.a and s.b\n  group by s.season\n),\npi as (\n  select date_trunc('week', r.date)::date as week_start, r.reg_id, max(r.region) as region, round(avg(r.index_value), 2) as idx\n  from public.team_07_region_index r\n  where r.date >= '2023-11-01'\n  group by 1, 2\n),\npw as (\n  select week_start, json_object_agg(reg_id, idx) as values,\n    (select 1 + count(*) from pi p2 where p2.week_start = pi.week_start and p2.idx > (select p3.idx from pi p3 where p3.week_start = pi.week_start and p3.reg_id = 'R54')) as rank_r54\n  from pi group by week_start\n)\nselect json_build_object(\n  'generated_at', now(),\n  'days', (select json_agg(row_to_json(m) order by m.date) from m),\n  'weeks', (select json_agg(row_to_json(wk2) order by wk2.week_start) from wk2),\n  'kpis', (select json_build_object(\n      'season', 'Winter 2025/26 (24 Nov - 3 May)', 'actual', k.actual, 'forecast', k.forecast, 'previous_year', k.previous_year,\n      'gap_fc', k.actual - k.forecast, 'gap_fc_pct', round((k.actual - k.forecast)::numeric / k.forecast * 100, 1),\n      'gap_py', k.actual - k.previous_year, 'gap_py_pct', round((k.actual - k.previous_year)::numeric / k.previous_year * 100, 1),\n      'occupancy_avg', k.occupancy,\n      'free_beds_latest', (select json_build_object('date', b.date, 'beds', b.available_beds) from public.team_07_free_beds b where b.date <= current_date order by b.date desc limit 1),\n      'next_season', (select json_build_object('season', 'Winter 2026/27 (23 Nov - 4 Apr)', 'forecast', kn.forecast, 'previous_year', kn.previous_year,\n          'fc_vs_py', kn.forecast - kn.previous_year, 'fc_vs_py_pct', round((kn.forecast - kn.previous_year)::numeric / kn.previous_year * 100, 1)) from kn)\n    ) from k),\n  'quality', (select json_build_object('days', count(*), 'red_days', count(*) filter (where quality_flag = 'red'),\n      'yellow_days', count(*) filter (where quality_flag = 'yellow'), 'green_days', count(*) filter (where quality_flag = 'green'),\n      'last_actual', max(date) filter (where actual is not null),\n      'red_list', (select json_agg(json_build_object('date', date, 'forecast', forecast, 'previous_year', previous_year, 'actual', actual, 'reason', 'forecast = 0') order by date) from m where quality_flag = 'red'),\n      'yellow_list', (select json_agg(json_build_object('date', date, 'forecast', forecast, 'actual', actual, 'gap_fc_pct', gap_fc_pct, 'reason', 'actual differs from forecast by more than 40 %') order by date) from m where quality_flag = 'yellow')\n    ) from m),\n  'village_beds', (select json_agg(json_build_object('village', v.village, 'beds', v.beds, 'host_count', v.host_count) order by v.beds desc) from public.team_07_village_beds v),\n  'holidays_by_week', (select json_object_agg(week, json_build_object('markets', markets, 'public', public_holidays)) from hol),\n  'events_by_week', (select json_object_agg(week, json_build_object('count', count, 'top', top)) from ev),\n  'weather_by_week', (select json_object_agg(week, json_build_object('snowfall_cm', snowfall_cm, 'temp_max_avg', temp_max_avg, 'temp_min_avg', temp_min_avg, 'wet_days', wet_days, 'days', days)) from wx),\n  'lead_time', json_build_object(\n      'buckets', json_build_array('0-7 days', '8-30 days', '31-60 days', '61-89 days', '90-179 days', '180+ days'),\n      'seasons', (select json_agg(row_to_json(lt) order by lt.season) from lt),\n      'weeks', (select json_agg(json_build_object('week_start', week_start, 'total', d0 + d8 + d31 + d61 + d90 + d180) order by week_start) from lt0)),\n  'peers', json_build_object(\n      'regions', (select json_agg(json_build_object('reg_id', reg_id, 'region', region) order by reg_id = 'R54' desc, region) from (select distinct reg_id, region from pi) r),\n      'weeks', (select json_agg(json_build_object('week_start', week_start, 'values', values, 'rank_r54', rank_r54) order by week_start) from pw)),\n  'sources', json_build_array('TVB Paznaun-Ischgl / Feratel', 'Contwise (CC-BY)', 'JOANNEUM Research regional index', 'OpenHolidays (ODbL)', 'Open-Meteo (CC BY 4.0)')\n) as result;",
+        "options": {}
+      },
+      "credentials": {
+        "postgres": {
+          "id": null,
+          "name": "TTF Supabase Postgres"
+        }
+      }
+    },
+    {
+      "id": "rs",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.result }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Query overview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query overview": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,11 @@
+# Python requirements.
+# The core scripts (setup_db, migrate_to_supabase, fit_driver_model, import_workflows, eval_agent) use the
+# standard library only (Python 3.9+) and need `psql` on your PATH. Nothing to install for them.
+
+# Optional: verified TLS on macOS python.org builds (eval_agent.py and import_workflows.py use it if present)
+certifi
+
+# Optional: only for the pitch video and screenshots in presentation/
+playwright
+edge-tts
+imageio-ffmpeg

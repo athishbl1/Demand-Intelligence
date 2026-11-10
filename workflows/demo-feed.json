@@ -1,0 +1,152 @@
+{
+  "name": "team-07 · Demo feed",
+  "nodes": [
+    {
+      "id": "d1",
+      "name": "Feed: read (GET)",
+      "webhookId": "team-07-demo-actual-wh",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -160
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "team-07-demo-actual",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      }
+    },
+    {
+      "id": "d8",
+      "name": "Take pending",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        -160
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// The app polls this. The pending dummy count is handed over ONCE and then forgotten,\n// so a page refresh in the app loses it.\nconst sd = $getWorkflowStaticData('global');\nconst r = sd.pending;\ndelete sd.pending;\ndelete sd.demo;\nreturn [{ json: { record: r ? { ...r, pending: true } : { ok: true, pending: false } } }];"
+      }
+    },
+    {
+      "id": "d9",
+      "name": "Respond feed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        600,
+        -160
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.record) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d10",
+      "name": "Receive dummy count (POST)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        340
+      ],
+      "webhookId": "team-07-demo-push-wh2",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "team-07-demo-push",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      }
+    },
+    {
+      "id": "d11",
+      "name": "Store pending",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        300,
+        340
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Keeps the pushed dummy count as ONE pending record (workflow static data), never in the database.\n// The app collects it once through GET team-07-demo-actual.\nconst r = $input.first().json.body || {};\nif (!r || r.actual === undefined || r.forecast === undefined) {\n  return [{ json: { record: { ok: false, error: 'bad_request', message: 'actual and forecast are required' } } }];\n}\n$getWorkflowStaticData('global').pending = r;\nreturn [{ json: { record: { ok: true, stored: true, date: r.date, actual: r.actual, forecast: r.forecast } } }];"
+      }
+    },
+    {
+      "id": "d12",
+      "name": "Respond push",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        600,
+        340
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json.record) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Receive dummy count (POST)": {
+      "main": [
+        [
+          {
+            "node": "Store pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store pending": {
+      "main": [
+        [
+          {
+            "node": "Respond push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Feed: read (GET)": {
+      "main": [
+        [
+          {
+            "node": "Take pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Take pending": {
+      "main": [
+        [
+          {
+            "node": "Respond feed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "about": "Labelled periods for the Change Explainer (POST team-07-agent). expect_top = finding id the first reason must have; allow_top = other acceptable ids; expect_type = change type; forbid = finding ids that must never be a reason (symptoms and locations).",
+  "forbid_always": ["demand", "miss_weekdays", "miss_days", "miss_broad", "peers_trend", "peers_local", "forecast_expected"],
+  "cases": [
+    { "name": "Easter moved out of the week (2026-W16)", "body": { "scope": "week", "week": "2026-W16" }, "expect_top": "drv_calendar" },
+    { "name": "Easter moved into the week (2026-W14)", "body": { "scope": "week", "week": "2026-W14" }, "expect_top": "drv_calendar" },
+    { "name": "Two weeks after Easter 2026 (range)", "body": { "scope": "range", "from": "2026-04-06", "to": "2026-04-19" }, "expect_top": "drv_calendar" },
+    { "name": "Season end, last day vs a different weekday (3 May 2026)", "body": { "scope": "day", "date": "2026-05-03" }, "expect_top": "drv_weekday_shift" },
+    { "name": "Forecast: week after Easter 2027 (2027-W13)", "body": { "scope": "week", "week": "2027-W13" }, "expect_top": "drv_calendar" },
+    { "name": "Forecast: Easter week 2027 (2027-W12)", "body": { "scope": "week", "week": "2027-W12" }, "expect_top": "drv_calendar" },
+    { "name": "Forecast: Christmas week 2026", "body": { "scope": "range", "from": "2026-12-21", "to": "2026-12-27" }, "expect_top": "drv_calendar", "allow_top": ["drv_weekday_shift"] },
+    { "name": "Quiet January week (no real change)", "body": { "scope": "week", "week": "2026-W03" }, "expect_top": null },
+    { "name": "Season opening data gap (2025-W45)", "body": { "scope": "week", "week": "2025-W45" }, "expect_type": "data_issue" }
+  ]
+}

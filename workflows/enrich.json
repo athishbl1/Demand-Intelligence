@@ -1,0 +1,65 @@
+{
+  "name": "team-07 · Enrich",
+  "nodes": [
+    {
+      "id": "wh",
+      "name": "Webhook",
+      "webhookId": "team-07-enrich-wh",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "team-07-enrich",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      }
+    },
+    {
+      "id": "code",
+      "name": "Build SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Fetch school/public holidays (OpenHolidays, ODbL) and daily weather (Open-Meteo, CC BY 4.0) and build two SQL statements.\nconst H = this.helpers;\nconst get = (url) => H.httpRequest({ method: 'GET', url, json: true });\nconst esc = (s) => (s === null || s === undefined || s === '') ? 'NULL' : \"'\" + String(s).replace(/'/g, \"''\") + \"'\";\nconst num = (v) => (v === null || v === undefined) ? 'NULL' : String(Number(v));\nconst FROM = '2025-11-01';\nconst TO = '2027-05-31';\nconst countries = ['DE', 'NL', 'BE', 'DK', 'SE', 'CH', 'AT'];\nconst rows = [];\nconst topCodes = (subs) => [...new Set((subs || []).map(s => s.code).filter(c => /^[A-Z]{2}-[A-Z0-9]{1,3}$/.test(c)))];\nfor (const c of countries) {\n  for (const kind of ['School', 'Public']) {\n    let list = [];\n    try {\n      list = await get('https://openholidaysapi.org/' + kind + 'Holidays?countryIsoCode=' + c + '&languageIsoCode=EN&validFrom=' + FROM + '&validTo=' + TO);\n    } catch (e) { list = []; }\n    for (const h of list) {\n      const name = ((h.name || []).find(n => n.language === 'EN') || (h.name || [])[0] || {}).text || kind;\n      const type = kind.toLowerCase() + ': ' + name;\n      const codes = topCodes(h.subdivisions);\n      if (c === 'DE' && codes.length) {\n        for (const code of codes) rows.push([c, code, h.startDate, h.endDate, type]);\n      } else {\n        const region = codes.length ? codes.map(x => x.split('-')[1]).join(',') : null;\n        rows.push([c, region, h.startDate, h.endDate, type]);\n      }\n    }\n  }\n}\n// Easter Sunday (Gregorian computus) for 2025-2027\nfor (const y of [2025, 2026, 2027]) {\n  const a = y % 19, b = Math.floor(y / 100), cc = y % 100, d = Math.floor(b / 4), e = b % 4;\n  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);\n  const hh = (19 * a + b - d - g + 15) % 30, i = Math.floor(cc / 4), k = cc % 4;\n  const l = (32 + 2 * e + 2 * i - hh - k) % 7, m = Math.floor((a + 11 * hh + 22 * l) / 451);\n  const month = Math.floor((hh + l - 7 * m + 114) / 31), day = ((hh + l - 7 * m + 114) % 31) + 1;\n  const iso = y + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');\n  rows.push(['AT', null, iso, iso, 'easter: Easter Sunday']);\n}\n// UK school holidays (England, approximate, hardcoded)\nconst uk = [\n  ['2025-12-20', '2026-01-04', 'school: Christmas'], ['2026-02-16', '2026-02-22', 'school: February half term'],\n  ['2026-03-28', '2026-04-12', 'school: Easter'], ['2026-12-19', '2027-01-03', 'school: Christmas'],\n  ['2027-02-15', '2027-02-21', 'school: February half term'], ['2027-03-27', '2027-04-11', 'school: Easter']\n];\nfor (const u of uk) rows.push(['UK', 'England', u[0], u[1], u[2] + ' (hardcoded, approximate)']);\n\n// Weather: Ischgl, archive API lags about 2 days\nconst end = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10);\nconst w = await get('https://archive-api.open-meteo.com/v1/archive?latitude=46.97&longitude=10.29&start_date=2025-11-04&end_date=' + end + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum&timezone=Europe%2FBerlin');\nconst dly = w.daily;\nconst wrows = dly.time.map((t, i) => [t, 'Ischgl', dly.temperature_2m_max[i], dly.temperature_2m_min[i], dly.precipitation_sum[i], dly.snowfall_sum[i]]);\n\nconst hv = rows.map(r => '(' + [esc(r[0]), esc(r[1]), esc(r[2]) + '::date', esc(r[3]) + '::date', esc(r[4])].join(',') + ')').join(',');\nconst wv = wrows.map(r => '(' + [esc(r[0]) + '::date', esc(r[1]), num(r[2]), num(r[3]), num(r[4]), num(r[5])].join(',') + ')').join(',');\nconst sql_h = 'with d as (delete from public.team_07_holidays returning 1) insert into public.team_07_holidays (market, region, start_date, end_date, type) values ' + hv;\nconst sql_w = 'with d as (delete from public.team_07_weather_daily returning 1) insert into public.team_07_weather_daily (date, location, temp_max, temp_min, precip_mm, snowfall_cm) values ' + wv;\nreturn [{ json: { sql_h, sql_w, counts: { holidays: rows.length, weather_days: wrows.length, weather_until: end } } }];"
+      }
+    },
+    {
+      "id": "pgh",
+      "name": "Write holidays",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [480, 0],
+      "parameters": { "operation": "executeQuery", "query": "={{ $json.sql_h }}", "options": {} },
+      "credentials": { "postgres": { "id": null, "name": "TTF Supabase Postgres" } }
+    },
+    {
+      "id": "pgw",
+      "name": "Write weather",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [720, 0],
+      "alwaysOutputData": true,
+      "parameters": { "operation": "executeQuery", "query": "={{ $('Build SQL').item.json.sql_w }}", "options": {} },
+      "credentials": { "postgres": { "id": null, "name": "TTF Supabase Postgres" } }
+    },
+    {
+      "id": "rs",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [960, 0],
+      "parameters": { "respondWith": "json", "responseBody": "={{ $('Build SQL').item.json.counts }}", "options": {} }
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Build SQL", "type": "main", "index": 0 }]] },
+    "Build SQL": { "main": [[{ "node": "Write holidays", "type": "main", "index": 0 }]] },
+    "Write holidays": { "main": [[{ "node": "Write weather", "type": "main", "index": 0 }]] },
+    "Write weather": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

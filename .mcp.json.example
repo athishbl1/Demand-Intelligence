@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "buildbar": {
+      "type": "http",
+      "url": "https://hub.ttf.buildbar.at/g/<YOUR-TEAM-TOKEN>/mcp"
+    }
+  }
+}

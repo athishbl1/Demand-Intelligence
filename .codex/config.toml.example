@@ -1,0 +1,6 @@
+# Codex project config. Copy to .codex/config.toml and put your own token in the URL.
+# The URL works like a password: keep the real file out of git.
+[mcp_servers.buildbar]
+url = "https://hub.ttf.buildbar.at/g/<YOUR-TEAM-TOKEN>/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 180

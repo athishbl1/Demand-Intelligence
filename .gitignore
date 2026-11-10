@@ -1,0 +1,40 @@
+# Secrets: never commit them.
+# The MCP connection files carry a token in the URL that works like a password. Copy the *.example
+# files and fill them in locally (see README).
+.mcp.json
+.codex/config.toml
+opencode.json
+.env
+.env.local
+.env*.local
+
+# Dependencies and builds
+node_modules/
+.next/
+out/
+dist/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local agent files
+.claude/settings.local.json
+backup/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+
+# TypeScript: never commit incremental build info.
+# Nixpacks would otherwise put a cache folder on this file and the build fails.
+*.tsbuildinfo
+
+# Challenge data (TTF Data Space, not committed)
+data/
+
+# Rendered pitch video and its intermediate files (rebuild with presentation/build_video.py)
+presentation/out/

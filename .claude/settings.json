@@ -1,0 +1,63 @@
+{
+  "enabledMcpjsonServers": ["buildbar"],
+  "permissions": {
+    "allow": [
+      "mcp__buildbar",
+      "WebFetch(domain:buildbar.at)",
+      "Bash(curl -fsSL https://buildbar.at/ttf-2026/claude.md)",
+      "Bash(date)",
+      "Bash(date -u)",
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(npm --prefix frontend-starter install *)",
+      "Bash(npm --prefix frontend-starter run build)",
+      "Bash(npm --prefix frontend-starter run dev)",
+      "Bash(npm --prefix frontend-starter audit *)",
+      "Bash(git --version)",
+      "Bash(git remote get-url *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git fetch origin)",
+      "Bash(git fetch origin main)",
+      "Bash(git rebase origin/main)",
+      "Bash(git rebase --continue)",
+      "Bash(git rebase --abort)",
+      "Bash(git push origin HEAD:main)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f *)",
+      "Bash(git push * -f)",
+      "Bash(git push * +*)",
+      "Bash(git push * --delete *)",
+      "Bash(git push * -d *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f*)",
+      "mcp__buildbar__n8n_delete_workflow",
+      "mcp__buildbar__n8n_update_full_workflow",
+      "mcp__buildbar__n8n_manage_credentials",
+      "mcp__buildbar__n8n_audit_instance",
+      "mcp__buildbar__n8n_manage_agents"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "mcp__buildbar__n8n_create_workflow|mcp__buildbar__n8n_update_partial_workflow",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/auto-backup.js\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

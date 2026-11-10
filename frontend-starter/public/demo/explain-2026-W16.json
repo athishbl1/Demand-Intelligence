@@ -1,0 +1,873 @@
+{
+  "scope": {
+    "kind": "week",
+    "label": "2026-W16",
+    "from": "2026-04-13",
+    "to": "2026-04-19",
+    "compare": "py"
+  },
+  "totals": {
+    "days": 7,
+    "days_with_actual": 7,
+    "actual": 34576,
+    "forecast": 40412,
+    "previous_year": 76824,
+    "forecast_cmp": 40412,
+    "previous_year_cmp": 76824,
+    "red_days": 0,
+    "yellow_days": 1,
+    "gap_fc": -5836,
+    "gap_py": -42248,
+    "gap_fc_pct": -14.4,
+    "gap_py_pct": -55,
+    "fc_vs_py": -36412,
+    "fc_vs_py_pct": -47.4
+  },
+  "parts": {
+    "expected": {
+      "value": -36412,
+      "share_pct": 86
+    },
+    "miss": {
+      "value": -5836,
+      "share_pct": 14
+    }
+  },
+  "change_type": "real_drop",
+  "change_text": "Real drop: below the forecast and below last year",
+  "severity": "high",
+  "headline": "Fewer holidays in source markets caused most drop",
+  "caveat": "25 % of the change is not explained by the causes we can measure (season dates, Easter, school holidays, Christmas, snow, weekdays). The gap to the forecast is within its normal error for this month.",
+  "reasons": [
+    {
+      "rank": 1,
+      "kind": "data",
+      "title": "Fewer source markets on holiday",
+      "text": "Easter Sunday is earlier this year and school holidays moved with it, causing about 32,682 fewer stays than last year on the same weekdays. Biggest drops come from Germany's school holidays, Easter, and the UK's school holidays.",
+      "evidence_refs": [
+        "f5.easter",
+        "f4.driver",
+        "f12.model",
+        "f4.hol_DE",
+        "f4.hol_UK"
+      ],
+      "explains": "expected",
+      "confidence": "medium",
+      "from_feedback": false,
+      "edited_by_check": false,
+      "finding_id": "drv_calendar",
+      "finding_rank": 1,
+      "score": 0.81,
+      "covers": true,
+      "worded_by": "ai",
+      "share_pct": 81
+    },
+    {
+      "rank": 2,
+      "kind": "data",
+      "title": "Time of the season",
+      "text": "These days are further from the start or end of the season than last year, which usually means more guests, adding about 2,649 stays. Days near season start or end always have fewer guests.",
+      "evidence_refs": [
+        "f12.season",
+        "f12.model"
+      ],
+      "explains": "expected",
+      "confidence": "medium",
+      "from_feedback": false,
+      "edited_by_check": false,
+      "finding_id": "drv_season_calendar",
+      "finding_rank": 2,
+      "score": 0.07,
+      "covers": true,
+      "worded_by": "ai",
+      "share_pct": 7
+    }
+  ],
+  "unexplained_pct": 25,
+  "findings": [
+    {
+      "rank": 1,
+      "finding_id": "drv_calendar",
+      "title": "Fewer source markets on holiday",
+      "statement": "Easter Sunday is on 5 Apr 2026 this year and was on 20 Apr 2025 last year, and the school holidays move with it. Because of the holidays there are about 32,682 fewer stays than on the same weekdays last year (likely between 3,456 and 41,568 fewer). Biggest parts: School holidays Germany (19,649 fewer stays), Easter (11,855 fewer stays), School holidays United Kingdom (9,366 fewer stays).",
+      "explains": "expected",
+      "direction": "down",
+      "share_pct": 81,
+      "strength": 1,
+      "reliability": 1,
+      "score": 0.81,
+      "confidence": "medium",
+      "covers": true,
+      "evidence_refs": [
+        "f5.easter",
+        "f4.driver",
+        "f12.model",
+        "f4.hol_DE",
+        "f4.hol_UK"
+      ],
+      "suggested": false,
+      "status": "selected"
+    },
+    {
+      "rank": 2,
+      "finding_id": "drv_season_calendar",
+      "title": "Time of the season",
+      "statement": "These days are further from the start or end of the season than the same weekdays last year. Days near the start or end of the season always have far fewer guests, so this means about 2,649 more stays (likely between 1,860 and 3,800 more).",
+      "explains": "expected",
+      "direction": "up",
+      "share_pct": 7,
+      "strength": 1,
+      "reliability": 1,
+      "score": 0.07,
+      "confidence": "medium",
+      "covers": true,
+      "evidence_refs": [
+        "f12.season",
+        "f12.model"
+      ],
+      "suggested": false,
+      "status": "selected"
+    }
+  ],
+  "logic": "drivers-v4",
+  "drivers": {
+    "version": "drivers-v2",
+    "basis": "actual",
+    "coefficients": "fitted on actual stays",
+    "comparison": "same weekdays last year (date - 364 days)",
+    "days": 7,
+    "ya": 34576,
+    "yb": 75106,
+    "gap": -40530,
+    "gap_pct": -54,
+    "explained": -30033,
+    "residual": -10926,
+    "unexplained_pct": 25,
+    "groups": [
+      {
+        "group": "calendar",
+        "label": "Holiday calendar (Easter, school holidays, Christmas)",
+        "role": "cause",
+        "stays": -32682,
+        "ci": [
+          -41568,
+          -3456
+        ],
+        "significant": true,
+        "pct_of_gap": 81,
+        "sub": [
+          {
+            "key": "DE",
+            "label": "School holidays Germany",
+            "stays": -19649
+          },
+          {
+            "key": "easter",
+            "label": "Easter",
+            "stays": -11855
+          },
+          {
+            "key": "UK",
+            "label": "School holidays United Kingdom",
+            "stays": -9366
+          },
+          {
+            "key": "AT",
+            "label": "School holidays Austria",
+            "stays": 2522
+          }
+        ]
+      },
+      {
+        "group": "season_calendar",
+        "label": "Season dates",
+        "role": "cause",
+        "stays": 2649,
+        "ci": [
+          1860,
+          3800
+        ],
+        "significant": true,
+        "pct_of_gap": 7,
+        "sub": []
+      },
+      {
+        "group": "level",
+        "label": "General level of the season",
+        "role": "trend",
+        "stays": 426,
+        "ci": [
+          -2764,
+          7526
+        ],
+        "significant": false,
+        "pct_of_gap": 1,
+        "sub": []
+      },
+      {
+        "group": "snow",
+        "label": "New snow",
+        "role": "cause",
+        "stays": 3,
+        "ci": [
+          -9,
+          9
+        ],
+        "significant": false,
+        "pct_of_gap": 0,
+        "sub": []
+      },
+      {
+        "group": "weekday",
+        "label": "Weekday mix",
+        "role": "cause",
+        "stays": 0,
+        "ci": [
+          0,
+          0
+        ],
+        "significant": false,
+        "pct_of_gap": 0,
+        "sub": []
+      }
+    ],
+    "backtest_mape_month": 34,
+    "backtest_mape": 11,
+    "forecast_noise": {
+      "n": 30,
+      "p50": 7.1,
+      "p80": 17.4
+    },
+    "threshold": 2027,
+    "calendar_gap": -42248,
+    "weekday_shift": -1718,
+    "miss_is_noise": true
+  },
+  "observations": [
+    {
+      "kind": "noise",
+      "finding_id": "forecast_noise",
+      "title": "Within the normal forecast error",
+      "statement": "Actual stays are 14.4 % below the forecast. In Apr the forecast is usually off by up to 17.4 %, so this gap is normal and not a real change.",
+      "evidence_refs": [
+        "f1.gap_fc"
+      ],
+      "direction": "down"
+    },
+    {
+      "kind": "where",
+      "finding_id": "miss_weekdays",
+      "title": "Shortfall came on Friday to Sunday",
+      "statement": "Against the forecast, Friday to Sunday was 26.4 % lower (5,623 fewer stays) while Monday to Thursday was 1.1 % lower. That is 96 % of the gap to the forecast. Sun 19 Apr is flagged by the data check: actual differs from the forecast by more than 40 %.",
+      "evidence_refs": [
+        "f11.miss_weekdays",
+        "f1.gap_fc"
+      ],
+      "direction": "down"
+    },
+    {
+      "kind": "what_we_see",
+      "finding_id": "demand",
+      "title": "Fewer bookings, more free beds than last year",
+      "statement": "Bookings made for the week this period falls in: 372 against 523 last year (28.9 % lower). On average 9,786 beds a day stayed free in the period, against 6,447 last year (51.8 % higher). 61 % were booked 0–30 days ahead, against 47 % last year. This confirms the shortfall against the forecast on the booking side, but the data does not show why guests booked less.",
+      "evidence_refs": [
+        "f8.bookings",
+        "f9.free_beds",
+        "f1.gap_fc"
+      ],
+      "direction": "down"
+    },
+    {
+      "kind": "data",
+      "finding_id": "data_flags",
+      "title": "Days with data warnings",
+      "statement": "0 red and 1 yellow day(s) in this period: actual and forecast differ by more than 40 %, which can also be a data or forecast error.",
+      "evidence_refs": [
+        "f3.quality"
+      ],
+      "direction": "down"
+    }
+  ],
+  "ruled_out": [
+    {
+      "group": "level",
+      "label": "General level of the season",
+      "stays": 426,
+      "why": "no real difference to last year"
+    },
+    {
+      "group": "snow",
+      "label": "New snow",
+      "stays": 3,
+      "why": "no real difference to last year"
+    },
+    {
+      "group": "weekday",
+      "label": "Weekday mix",
+      "stays": 0,
+      "why": "no real difference to last year"
+    },
+    {
+      "group": "events",
+      "label": "Events",
+      "stays": null,
+      "why": "no event data for last year, so events cannot be compared"
+    }
+  ],
+  "facts": [
+    {
+      "id": "f1.actual",
+      "label": "Actual stays",
+      "now": 34576,
+      "ref": null,
+      "source": "TVB Paznaun-Ischgl stays"
+    },
+    {
+      "id": "f1.forecast",
+      "label": "Forecast stays (same days)",
+      "now": 40412,
+      "ref": null,
+      "source": "TVB Paznaun-Ischgl stays"
+    },
+    {
+      "id": "f1.previous_year",
+      "label": "Stays last year (same days)",
+      "now": 76824,
+      "ref": null,
+      "source": "TVB Paznaun-Ischgl stays"
+    },
+    {
+      "id": "f1.gap_fc",
+      "label": "Actual vs forecast",
+      "now": "5,836 fewer stays (14.4 % lower)",
+      "ref": null,
+      "source": "TVB Paznaun-Ischgl stays"
+    },
+    {
+      "id": "f1.gap_py",
+      "label": "Actual vs last year",
+      "now": "42,248 fewer stays (55.0 % lower)",
+      "ref": null,
+      "source": "TVB Paznaun-Ischgl stays"
+    },
+    {
+      "id": "f1.fc_vs_py",
+      "label": "Forecast vs last year (what was expected)",
+      "now": "36,412 fewer stays (47.4 % lower)",
+      "ref": null,
+      "source": "TVB Paznaun-Ischgl stays"
+    },
+    {
+      "id": "f1.part_expected",
+      "label": "Part of the gap to last year the forecast already expected",
+      "now": "36,412 fewer stays (86 % of the change)",
+      "ref": null,
+      "source": "computed"
+    },
+    {
+      "id": "f1.part_miss",
+      "label": "Part of the gap to last year that is a forecast miss",
+      "now": "5,836 fewer stays (14 % of the change)",
+      "ref": null,
+      "source": "computed"
+    },
+    {
+      "id": "f1.change_type",
+      "label": "Change type (computed, ±5 % tolerance)",
+      "now": "Real drop: below the forecast and below last year",
+      "ref": null,
+      "source": "computed"
+    },
+    {
+      "id": "f3.quality",
+      "label": "Days with data warnings",
+      "now": "0 red, 1 yellow of 7",
+      "ref": null,
+      "source": "computed",
+      "note": "red = forecast is 0; yellow = actual differs from forecast by more than 40 %"
+    },
+    {
+      "id": "f2.peak_day",
+      "label": "Day with the biggest drop vs last year",
+      "now": "2026-04-19 (Sunday): 3,164 vs 10,466",
+      "ref": null,
+      "source": "TVB Paznaun-Ischgl stays"
+    },
+    {
+      "id": "f5.easter",
+      "label": "Easter Sunday",
+      "now": "2026-04-05",
+      "ref": "2025-04-20",
+      "source": "calendar (computed)",
+      "note": "this year's Easter is 14 days earlier in the year than last year's; Easter is outside this period, last year's Easter fell in the same period"
+    },
+    {
+      "id": "f4.hol_AT",
+      "label": "School holiday days in AT (source market)",
+      "now": "0 of 7",
+      "ref": "7 of 7",
+      "source": "OpenHolidays",
+      "note": "no split of stays by market in the data: the effect on Paznaun is not measured"
+    },
+    {
+      "id": "f4.hol_BE",
+      "label": "School holiday days in BE (source market)",
+      "now": "7 of 7",
+      "ref": "7 of 7",
+      "source": "OpenHolidays",
+      "note": "no split of stays by market in the data: the effect on Paznaun is not measured"
+    },
+    {
+      "id": "f4.hol_CH",
+      "label": "School holiday days in CH (source market)",
+      "now": "7 of 7",
+      "ref": "7 of 7",
+      "source": "OpenHolidays",
+      "note": "no split of stays by market in the data: the effect on Paznaun is not measured"
+    },
+    {
+      "id": "f4.hol_DE",
+      "label": "School holiday days in DE (source market)",
+      "now": "5 of 7",
+      "ref": "7 of 7",
+      "source": "OpenHolidays",
+      "note": "no split of stays by market in the data: the effect on Paznaun is not measured"
+    },
+    {
+      "id": "f4.hol_UK",
+      "label": "School holiday days in UK (source market)",
+      "now": "0 of 7",
+      "ref": "7 of 7",
+      "source": "OpenHolidays",
+      "note": "no split of stays by market in the data: the effect on Paznaun is not measured"
+    },
+    {
+      "id": "f6.events",
+      "label": "Events in the valley",
+      "now": "3 (0 top): Tourism Games - Eröffnungsabend, Tourism Games - Bewerbe, TOM Spring",
+      "ref": "no event data for last year",
+      "source": "TVB event calendar, Contwise"
+    },
+    {
+      "id": "f7.weather",
+      "label": "Weather in Ischgl (period average/sum)",
+      "now": "new snow 0.1 cm, max temp 6.5 °C, rain/snow 3.2 mm",
+      "ref": "new snow 0 cm, max temp 8.1 °C, rain/snow 11.9 mm",
+      "source": "Open-Meteo"
+    },
+    {
+      "id": "f8.bookings",
+      "label": "Bookings made for these weeks",
+      "now": 372,
+      "ref": 523,
+      "source": "TVB booking lead time",
+      "note": "28.9 % lower; share booked 0–30 days ahead: 61 % vs 47 %"
+    },
+    {
+      "id": "f9.free_beds",
+      "label": "Free beds per day (average)",
+      "now": 9786,
+      "ref": 6447,
+      "source": "TVB free beds",
+      "note": "51.8 % higher; more free beds with fewer stays points to weaker demand, not less capacity"
+    },
+    {
+      "id": "f11.miss_weekdays",
+      "label": "Actual vs forecast: Friday to Sunday compared with Monday to Thursday",
+      "now": "Friday to Sunday 5,623 fewer stays (26.4 % lower); Monday to Thursday 213 fewer stays (1.1 % lower)",
+      "ref": null,
+      "source": "computed",
+      "note": "96 % of the gap to the forecast on Friday to Sunday: 2026-04-17, 2026-04-18, 2026-04-19"
+    },
+    {
+      "id": "f12.model",
+      "label": "Change against the same weekdays last year",
+      "now": "40,530 fewer stays (54.0 % lower)",
+      "ref": "75,106 stays last year",
+      "source": "Our statistical model (2 years of stays)",
+      "note": "the causes we found account for 30,033 fewer stays; in this month the model is usually off by about 34 %"
+    },
+    {
+      "id": "f4.driver",
+      "label": "Effect of the holiday calendar (Easter, school holidays, Christmas) on stays",
+      "now": "about 32,682 fewer stays (likely between 3,456 and 41,568 fewer)",
+      "ref": null,
+      "source": "Our statistical model (2 years of stays)"
+    },
+    {
+      "id": "f12.season",
+      "label": "Effect of the season dates on stays",
+      "now": "about 2,649 more stays (likely between 1,860 and 3,800 more)",
+      "ref": null,
+      "source": "Our statistical model (2 years of stays)"
+    }
+  ],
+  "series": [
+    {
+      "date": "2026-03-23",
+      "actual": 11835,
+      "forecast": 13134,
+      "previous_year": 10883,
+      "in_period": false
+    },
+    {
+      "date": "2026-03-24",
+      "actual": 11306,
+      "forecast": 11944,
+      "previous_year": 10123,
+      "in_period": false
+    },
+    {
+      "date": "2026-03-25",
+      "actual": 11125,
+      "forecast": 12312,
+      "previous_year": 9625,
+      "in_period": false
+    },
+    {
+      "date": "2026-03-26",
+      "actual": 11969,
+      "forecast": 13440,
+      "previous_year": 9659,
+      "in_period": false
+    },
+    {
+      "date": "2026-03-27",
+      "actual": 12988,
+      "forecast": 14788,
+      "previous_year": 11196,
+      "in_period": false
+    },
+    {
+      "date": "2026-03-28",
+      "actual": 16188,
+      "forecast": 17604,
+      "previous_year": 13106,
+      "in_period": false
+    },
+    {
+      "date": "2026-03-29",
+      "actual": 14691,
+      "forecast": 16652,
+      "previous_year": 11698,
+      "in_period": false
+    },
+    {
+      "date": "2026-03-30",
+      "actual": 14631,
+      "forecast": 16288,
+      "previous_year": 6825,
+      "in_period": false
+    },
+    {
+      "date": "2026-03-31",
+      "actual": 17322,
+      "forecast": 15881,
+      "previous_year": 6161,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-01",
+      "actual": 14714,
+      "forecast": 15157,
+      "previous_year": 5897,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-02",
+      "actual": 16950,
+      "forecast": 16304,
+      "previous_year": 7290,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-03",
+      "actual": 18084,
+      "forecast": 18798,
+      "previous_year": 7663,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-04",
+      "actual": 17198,
+      "forecast": 18512,
+      "previous_year": 10517,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-05",
+      "actual": 17085,
+      "forecast": 16847,
+      "previous_year": 14850,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-06",
+      "actual": 13302,
+      "forecast": 13401,
+      "previous_year": 12782,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-07",
+      "actual": 12341,
+      "forecast": 12214,
+      "previous_year": 10903,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-08",
+      "actual": 12033,
+      "forecast": 11793,
+      "previous_year": 10417,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-09",
+      "actual": 12100,
+      "forecast": 12424,
+      "previous_year": 9773,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-10",
+      "actual": 11844,
+      "forecast": 11879,
+      "previous_year": 10148,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-11",
+      "actual": 8709,
+      "forecast": 10518,
+      "previous_year": 10481,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-12",
+      "actual": 4853,
+      "forecast": 5601,
+      "previous_year": 11442,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-13",
+      "actual": 4631,
+      "forecast": 5076,
+      "previous_year": 10538,
+      "in_period": true
+    },
+    {
+      "date": "2026-04-14",
+      "actual": 4409,
+      "forecast": 4562,
+      "previous_year": 10618,
+      "in_period": true
+    },
+    {
+      "date": "2026-04-15",
+      "actual": 4564,
+      "forecast": 4507,
+      "previous_year": 10707,
+      "in_period": true
+    },
+    {
+      "date": "2026-04-16",
+      "actual": 5290,
+      "forecast": 4962,
+      "previous_year": 10251,
+      "in_period": true
+    },
+    {
+      "date": "2026-04-17",
+      "actual": 6614,
+      "forecast": 8007,
+      "previous_year": 11871,
+      "in_period": true
+    },
+    {
+      "date": "2026-04-18",
+      "actual": 5904,
+      "forecast": 7670,
+      "previous_year": 12373,
+      "in_period": true
+    },
+    {
+      "date": "2026-04-19",
+      "actual": 3164,
+      "forecast": 5628,
+      "previous_year": 10466,
+      "in_period": true
+    },
+    {
+      "date": "2026-04-20",
+      "actual": 2204,
+      "forecast": 2103,
+      "previous_year": 8820,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-21",
+      "actual": 1989,
+      "forecast": 1720,
+      "previous_year": 5128,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-22",
+      "actual": 2093,
+      "forecast": 1785,
+      "previous_year": 4712,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-23",
+      "actual": 2652,
+      "forecast": 2774,
+      "previous_year": 4405,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-24",
+      "actual": 3887,
+      "forecast": 4794,
+      "previous_year": 4441,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-25",
+      "actual": 3949,
+      "forecast": 4048,
+      "previous_year": 5122,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-26",
+      "actual": 1715,
+      "forecast": 1879,
+      "previous_year": 4254,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-27",
+      "actual": 1493,
+      "forecast": 1609,
+      "previous_year": 2077,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-28",
+      "actual": 2004,
+      "forecast": 1800,
+      "previous_year": 1949,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-29",
+      "actual": 5349,
+      "forecast": 4168,
+      "previous_year": 2551,
+      "in_period": false
+    },
+    {
+      "date": "2026-04-30",
+      "actual": 11244,
+      "forecast": 6861,
+      "previous_year": 7279,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-01",
+      "actual": 11406,
+      "forecast": 12729,
+      "previous_year": 10738,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-02",
+      "actual": 11323,
+      "forecast": 13215,
+      "previous_year": 11385,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-03",
+      "actual": 388,
+      "forecast": 738,
+      "previous_year": 10944,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-04",
+      "actual": 56,
+      "forecast": 170,
+      "previous_year": 297,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-05",
+      "actual": 42,
+      "forecast": 147,
+      "previous_year": 71,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-06",
+      "actual": 44,
+      "forecast": 172,
+      "previous_year": 65,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-07",
+      "actual": 42,
+      "forecast": 57,
+      "previous_year": 56,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-08",
+      "actual": 67,
+      "forecast": 34,
+      "previous_year": 59,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-09",
+      "actual": 65,
+      "forecast": 0,
+      "previous_year": 82,
+      "in_period": false
+    },
+    {
+      "date": "2026-05-10",
+      "actual": 30,
+      "forecast": 4,
+      "previous_year": 70,
+      "in_period": false
+    }
+  ],
+  "change_note": null,
+  "version": 1,
+  "model": "gpt-4.1-mini",
+  "ai": true,
+  "error": null,
+  "report": null,
+  "created_at": "2026-11-08T03:44:52.660Z",
+  "explanation_id": 92,
+  "root_id": 92,
+  "alert_id": null,
+  "versions": [
+    {
+      "id": 92,
+      "version": 1,
+      "change_note": null,
+      "created_at": "2026-11-08T03:44:52.681603+00:00"
+    }
+  ],
+  "feedback_summary": {
+    "up": 0,
+    "down": 0,
+    "notes": 0
+  }
+}

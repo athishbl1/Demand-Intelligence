@@ -1,0 +1,135 @@
+{
+  "name": "team-07 · Reason tool",
+  "nodes": [
+    {
+      "id": "wh",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "team-07-reason-tool",
+        "responseMode": "responseNode",
+        "options": { "allowedOrigins": "*" }
+      }
+    },
+    {
+      "id": "prep",
+      "name": "Prepare",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const b = $input.first().json.body || $input.first().json;\nconst date = String(b.date || '');\nconst location = String(b.location || 'Ischgl');\nconst diff = Number(b.difference);\nconst ok = /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && isFinite(diff);\nconst d = new Date(date + 'T00:00:00Z');\nconst addDays = (n) => { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };\nreturn [{ json: { ok, date, location, difference: diff, direction: diff < 0 ? 'negative' : 'positive', from: addDays(-7), to: addDays(7) } }];"
+      }
+    },
+    {
+      "id": "school",
+      "name": "School holidays",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 0],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "parameters": {
+        "method": "GET",
+        "url": "https://openholidaysapi.org/SchoolHolidays",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "countryIsoCode", "value": "AT" },
+            { "name": "subdivisionCode", "value": "AT-TI" },
+            { "name": "languageIsoCode", "value": "DE" },
+            { "name": "validFrom", "value": "={{ $('Prepare').item.json.from }}" },
+            { "name": "validTo", "value": "={{ $('Prepare').item.json.to }}" }
+          ]
+        },
+        "options": { "timeout": 15000 }
+      }
+    },
+    {
+      "id": "pub",
+      "name": "Public holidays",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 0],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "parameters": {
+        "method": "GET",
+        "url": "https://openholidaysapi.org/PublicHolidays",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "countryIsoCode", "value": "AT" },
+            { "name": "subdivisionCode", "value": "AT-TI" },
+            { "name": "languageIsoCode", "value": "DE" },
+            { "name": "validFrom", "value": "={{ $('Prepare').item.json.from }}" },
+            { "name": "validTo", "value": "={{ $('Prepare').item.json.to }}" }
+          ]
+        },
+        "options": { "timeout": 15000 }
+      }
+    },
+    {
+      "id": "wx",
+      "name": "Weather",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 0],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "latitude", "value": "46.97" },
+            { "name": "longitude", "value": "10.29" },
+            { "name": "daily", "value": "temperature_2m_max,precipitation_sum,snowfall_sum" },
+            { "name": "timezone", "value": "Europe/Vienna" },
+            { "name": "start_date", "value": "={{ $('Prepare').item.json.date }}" },
+            { "name": "end_date", "value": "={{ $('Prepare').item.json.date }}" }
+          ]
+        },
+        "options": { "timeout": 15000 }
+      }
+    },
+    {
+      "id": "reason",
+      "name": "Reason",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = $('Prepare').first().json;\nif (!p.ok) return [{ json: { error: 'invalid_input', expected: { date: 'YYYY-MM-DD', location: 'text', difference: 'number (actual minus forecast)' } } }];\nconst items = (name) => $(name).all().map(i => i.json).filter(x => x && x.startDate && x.endDate);\nconst school = items('School holidays');\nconst publicH = items('Public holidays');\nconst wxRaw = $('Weather').first().json;\nconst daily = wxRaw && wxRaw.daily ? wxRaw.daily : null;\nconst tmax = daily && daily.temperature_2m_max ? daily.temperature_2m_max[0] : null;\nconst precip = daily && daily.precipitation_sum ? daily.precipitation_sum[0] : null;\nconst snow = daily && daily.snowfall_sum ? daily.snowfall_sum[0] : null;\nconst d = new Date(p.date + 'T00:00:00Z');\nconst gaps = [];\nif (!school.length && !$('School holidays').all().length) gaps.push('School holiday data not available');\nif (!daily) gaps.push('Weather not available for this date (outside the forecast range or API error)');\nconst cands = [];\nconst add = (reason, influence, weight, evidence) => cands.push({ reason, influence, weight, evidence });\nconst inRange = (h) => h.startDate <= p.date && p.date <= h.endDate;\nconst daysTo = (iso) => (new Date(iso + 'T00:00:00Z') - d) / 86400000;\nif (school.some(inRange)) add('School holidays on this date', 'positive', 0.8, 'Date is inside a school holiday period (Tyrol)');\nelse {\n  const starts = school.find(h => daysTo(h.startDate) > 0 && daysTo(h.startDate) <= 3);\n  if (starts) add('School holidays start within 3 days', 'positive', 0.5, 'Holidays begin ' + starts.startDate);\n  const ended = school.find(h => daysTo(h.endDate) < 0 && daysTo(h.endDate) >= -3);\n  if (ended) add('School holidays ended within 3 days', 'negative', 0.6, 'Holidays ended ' + ended.endDate);\n}\nconst ph = publicH.find(inRange);\nif (ph) add('Public holiday on this date', 'positive', 0.7, ph.name && ph.name[0] ? ph.name[0].text : 'public holiday');\nelse if (publicH.some(h => Math.abs(daysTo(h.startDate)) <= 1)) add('Long weekend or bridge day', 'positive', 0.4, 'Public holiday within 1 day');\nconst wd = d.getUTCDay();\nif (wd === 5 || wd === 6 || wd === 0) add('Friday, Saturday or Sunday night', 'negative', 0.35, 'In the 2025/26 data, Fri, Sat and Sun stays fell most short of forecast');\nconst winter = [10, 11, 0, 1, 2, 3].includes(d.getUTCMonth());\nif (precip !== null && precip >= 10) add('Heavy precipitation', 'negative', 0.6, precip + ' mm');\nif (snow !== null && snow >= 5) add('Fresh snow', 'positive', 0.7, snow + ' cm new snow');\nif (tmax !== null && winter && tmax >= 8 && (snow === null || snow < 5)) add('Warm day with little snow', 'negative', 0.5, 'max ' + tmax + ' °C, snow ' + (snow ?? 0) + ' cm');\nconst ranked = [...cands].sort((a, b) => b.weight - a.weight);\nconst supports = ranked.filter(c => (p.direction === 'negative' ? c.influence === 'negative' : c.influence === 'positive'));\nconst other = ranked.filter(c => !supports.includes(c));\nconst top = [...supports, ...other].slice(0, 3).map((c, i) => ({ rank: i + 1, reason: c.reason, influence: c.influence, weight: c.weight, supports_observed_direction: supports.includes(c), evidence: c.evidence }));\nreturn [{ json: { date: p.date, location: p.location, difference: p.difference, direction: p.direction, top_reasons: top, candidates_checked: cands.length, data_gaps: gaps, method: 'Rule-based: school and public holidays, weekday pattern, weather (Open-Meteo). Not yet included: regional trend, events, booking pace.' } }];"
+      }
+    },
+    {
+      "id": "resp",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1440, 0],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Prepare", "type": "main", "index": 0 }]] },
+    "Prepare": { "main": [[{ "node": "School holidays", "type": "main", "index": 0 }]] },
+    "School holidays": { "main": [[{ "node": "Public holidays", "type": "main", "index": 0 }]] },
+    "Public holidays": { "main": [[{ "node": "Weather", "type": "main", "index": 0 }]] },
+    "Weather": { "main": [[{ "node": "Reason", "type": "main", "index": 0 }]] },
+    "Reason": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": {}
+}

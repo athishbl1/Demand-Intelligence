@@ -1,0 +1,1441 @@
+﻿@import "tailwindcss";
+
+/* ==================================================================
+ * Look and building blocks for all pages
+ * ==================================================================
+ *
+ * Base look: the ischgl.com theme on white. White and light grey surfaces,
+ * near-black text (#1a1a1a), DM Sans for text, a heavy squared display face
+ * (Saira, standing in for Eurostile Heavy) for uppercase headlines and
+ * buttons, square corners and the Ischgl crimson #bb1c3f as the ONE accent
+ * colour. Main buttons have the cut-off top-right corner of ischgl.com.
+ * The accent lives in lib/app.ts (APP.accent) and reaches <html> as --accent
+ * via app/layout.tsx. --accent-light and --accent-dark are computed from it.
+ * For another colour change lib/app.ts, not this file.
+ *
+ * The components use Tailwind colour classes. Two palettes are re-mapped
+ * below: slate is the neutral Ischgl grey scale and sky is the crimson.
+ *
+ * Building blocks (className="..."):
+ *
+ *   page-title     page title on <h1>, with a short bar in the accent colour
+ *   eyebrow        small uppercase label above a headline, with a crimson dash
+ *   card           white surface with border, for forms and results
+ *   label          label above a field: <label htmlFor="town" className="label">
+ *   field          input, select or textarea
+ *   btn            main button, crimson with cut corner (one per form)
+ *   btn-secondary  secondary button, outlined (reset, cancel, download)
+ *   btn-ghost      text button with an arrow-friendly underline on hover
+ *   notice         light box in the accent colour for results and hints
+ *   notice-error   red box for error messages, add role="alert"
+ *   table-wrap     on a <div> around a <table>. A table that is too wide
+ *                  scrolls inside its box, the page itself stays still.
+ *   badge-green / badge-yellow / badge-red / badge-gray   status badges
+ *   spinner        spinning circle while waiting, on an empty <span>
+ *   skeleton       grey shimmering placeholder, set the height with Tailwind
+ *   container-page centred page width with side gutters
+ *   reveal         fades in when scrolled into view (see components/ui/Reveal)
+ *   cut-corner     cuts the top-right corner off any box
+ *   text-outline   outlined display text for big decorative words
+ *
+ * Layout and spacing with Tailwind (flex, grid, gap-4, mt-6, sm:grid-cols-2 ...).
+ * Colour classes that match the look: text-accent, bg-accent, bg-accent-light,
+ * border-accent, text-muted (grey text), border-line, bg-surface-muted.
+ * ================================================================== */
+
+/* Colours as Tailwind classes. "inline" means: the classes read the variables
+   directly, so a different accent colour from lib/app.ts applies at once. */
+@theme inline {
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dark: var(--accent-dark);
+  --color-muted: var(--text-muted);
+  --color-line: var(--line);
+  --color-surface-muted: var(--surface-muted);
+  --font-sans: var(--font);
+  --font-display: var(--font-heading);
+}
+
+/* Ischgl palette for the Tailwind colour classes used in the components */
+@theme {
+  /* Neutrals: the ischgl.com greys */
+  --color-slate-50: #f8f9fa;
+  --color-slate-100: #f1f2f4;
+  --color-slate-200: #e4e6e9;
+  --color-slate-300: #cfd2d6;
+  --color-slate-400: #a3a7ad;
+  --color-slate-500: #6f747a;
+  --color-slate-600: #55595e;
+  --color-slate-700: #3f4246;
+  --color-slate-800: #313131;
+  --color-slate-900: #1a1a1a;
+  --color-slate-950: #111111;
+
+  /* Brand (sky): Ischgl crimson */
+  --color-sky-50: color-mix(in srgb, var(--accent) 6%, #ffffff);
+  --color-sky-100: color-mix(in srgb, var(--accent) 12%, #ffffff);
+  --color-sky-200: color-mix(in srgb, var(--accent) 24%, #ffffff);
+  --color-sky-300: color-mix(in srgb, var(--accent) 42%, #ffffff);
+  --color-sky-400: color-mix(in srgb, var(--accent) 70%, #ffffff);
+  --color-sky-500: var(--accent);
+  --color-sky-600: var(--accent);
+  --color-sky-700: color-mix(in srgb, var(--accent) 86%, #000000);
+  --color-sky-800: color-mix(in srgb, var(--accent) 72%, #000000);
+  --color-sky-900: color-mix(in srgb, var(--accent) 58%, #000000);
+  --color-sky-950: color-mix(in srgb, var(--accent) 45%, #000000);
+
+  /* Square corners like ischgl.com; rounded-full stays round */
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-marquee-reverse: marquee 44s linear infinite reverse;
+}
+
+:root {
+  /* Accent colour. app/layout.tsx overrides it with APP.accent from lib/app.ts. */
+  --accent: #bb1c3f;
+  /* Computed from it, do not set by hand. */
+  --accent-light: color-mix(in srgb, var(--accent) 7%, #ffffff);
+  --accent-border: color-mix(in srgb, var(--accent) 28%, #ffffff);
+  --accent-dark: color-mix(in srgb, var(--accent) 82%, #000000);
+  --on-accent: #ffffff; /* text on the accent colour */
+
+  --background: #ffffff;
+  --surface: #ffffff; /* cards and fields */
+  --surface-muted: #f4f5f7; /* ischgl.com light section background */
+  --line: #e4e6e9; /* thin lines and borders */
+  --line-field: #cfd2d6; /* border of input fields */
+  --text: #1a1a1a;
+  --text-muted: #6f747a;
+
+  --radius: 0px;
+  --cut: 0.75rem; /* cut-off top-right corner of the main buttons */
+  --shadow-premium: 0 1px 2px rgb(17 17 17 / 0.04), 0 18px 40px -18px rgb(17 17 17 / 0.18);
+  --font: var(--font-dm-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-saira), var(--font);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    background: var(--background);
+    accent-color: var(--accent);
+    font-family: var(--font);
+    scroll-behavior: smooth;
+    scroll-padding-top: 8rem;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-wrap: break-word;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--text);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+  /* Big headlines in capitals, as on ischgl.com */
+  h1,
+  h2 {
+    text-transform: uppercase;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.15s ease, opacity 0.15s ease;
+  }
+
+  button,
+  .btn,
+  .btn-secondary,
+  a.btn,
+  a.btn-secondary {
+    text-decoration: none !important;
+  }
+
+  code {
+    background: var(--surface-muted);
+    border-radius: 2px;
+    padding: 0.1em 0.35em;
+    font-size: 0.9em;
+  }
+
+  pre {
+    background: var(--surface-muted);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  input[type="range"] {
+    accent-color: var(--accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    /* The spinner keeps turning, only slower: it shows that something is happening. */
+    .spinner {
+      animation-duration: 1.5s !important;
+      animation-iteration-count: infinite !important;
+    }
+  }
+}
+
+@layer components {
+  /* Jump to the content for keyboard and screen reader users, first element in the body */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    background: var(--accent);
+    color: var(--on-accent);
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+  }
+  .skip-link:focus {
+    left: 0;
+  }
+
+  .container-page {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 40rem) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* Page title with a short bar in the accent colour */
+  .page-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .page-title::after {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 4px;
+    margin-top: 0.875rem;
+    background: var(--accent);
+  }
+
+  /* Small uppercase label above a headline */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 1.75rem;
+    height: 2px;
+    background: currentColor;
+  }
+
+  /* White surface with border */
+  .card {
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px rgb(17 17 17 / 0.04);
+    transition:
+      box-shadow 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s ease;
+  }
+  @media (min-width: 40rem) {
+    .card {
+      padding: 1.5rem;
+    }
+  }
+
+  .label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Inputs, selects, textareas. Font size 16px, so that phones do not zoom in. */
+  .field {
+    display: block;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text);
+    background-color: var(--surface);
+    border: 1px solid var(--line-field);
+    border-radius: var(--radius);
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .field::placeholder {
+    color: var(--color-slate-400);
+  }
+  .field:hover {
+    border-color: var(--text-muted);
+  }
+  .field:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+  .field:disabled {
+    background-color: var(--surface-muted);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+  textarea.field {
+    min-height: 6rem;
+    resize: vertical;
+  }
+  select.field:not([multiple]):not([size]) {
+    appearance: none;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236f747a'%3E%3Cpath d='M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+  }
+
+  /* Buttons: .btn crimson for the main action, .btn-secondary outlined for everything else */
+  .btn,
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 3rem;
+    padding: 0.5rem 1.5rem;
+    border: 1.5px solid transparent;
+    border-radius: var(--radius);
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s,
+      filter 0.2s,
+      transform 0.2s;
+  }
+  .btn {
+    background-color: var(--accent);
+    color: var(--on-accent);
+    padding-right: calc(1.5rem + var(--cut));
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  }
+  .btn:hover:not(:disabled) {
+    background-color: var(--accent-dark);
+    color: var(--on-accent);
+  }
+  .btn:active:not(:disabled),
+  .btn-secondary:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .btn-secondary {
+    background-color: transparent;
+    border-color: var(--text);
+    color: var(--text);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--text);
+    color: #ffffff;
+  }
+  .btn:disabled,
+  .btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-heading);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-size: 0% 2px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    padding-bottom: 2px;
+    transition:
+      background-size 0.3s ease,
+      color 0.2s;
+  }
+  .btn-ghost:hover {
+    background-size: 100% 2px;
+    color: var(--accent);
+  }
+
+  /* Light box for results and hints */
+  .notice {
+    background: var(--accent-light);
+    border: 1px solid var(--accent-border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 0.875rem 1rem;
+    color: var(--text);
+  }
+
+  /* Error message */
+  .notice-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 3px solid #dc2626;
+    border-radius: var(--radius);
+    padding: 0.875rem 1rem;
+    color: #991b1b;
+  }
+
+  /* Table: class on a <div> around the <table>. Tables that are too wide scroll inside it. */
+  .table-wrap {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .table-wrap table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  table.table-wrap {
+    display: block;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .table-wrap th {
+    background: var(--surface-muted);
+    border-bottom: 1px solid var(--line);
+    padding: 0.625rem 0.875rem;
+    text-align: left;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .table-wrap td {
+    max-width: 20rem;
+    border-bottom: 1px solid var(--line);
+    padding: 0.625rem 0.875rem;
+    vertical-align: top;
+  }
+  .table-wrap tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .table-wrap tbody tr:hover td {
+    background: var(--color-slate-50);
+  }
+
+  /* Status badges like a traffic light. The dot shows the colour, the word the meaning. */
+  .badge-green,
+  .badge-yellow,
+  .badge-red,
+  .badge-gray {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .badge-green::before,
+  .badge-yellow::before,
+  .badge-red::before,
+  .badge-gray::before {
+    content: "";
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--badge-dot);
+  }
+  .badge-green {
+    --badge-dot: #10b981;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+  }
+  .badge-yellow {
+    --badge-dot: #f59e0b;
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+  .badge-red {
+    --badge-dot: #ef4444;
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+  .badge-gray {
+    --badge-dot: #a3a7ad;
+    background: #f1f2f4;
+    border-color: #e4e6e9;
+    color: #3f4246;
+  }
+
+  /* Waiting: spinning circle and shimmering placeholder */
+  .spinner {
+    display: inline-block;
+    flex: none;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: -0.125em;
+    animation: spinner-turn 0.7s linear infinite;
+  }
+  .skeleton {
+    display: block;
+    min-height: 1rem;
+    border-radius: var(--radius);
+    background: linear-gradient(90deg, var(--surface-muted) 0%, #e9ebee 50%, var(--surface-muted) 100%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
+  /* Fades in when scrolled into view */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .cut-corner {
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  }
+  .cut-corner-lg {
+    --cut: 2.25rem;
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  }
+
+  /* The text colour (text-slate-300 ...) becomes the outline colour */
+  .text-outline {
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 1.5px currentColor;
+  }
+
+  /* Marquee row, pauses on hover */
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Subtle dotted grid for hero and panel backgrounds */
+  .bg-dots {
+    background-image: radial-gradient(rgb(17 17 17 / 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+/* Main call-to-action links and buttons in the components: ischgl.com button style */
+@layer utilities {
+  a.bg-sky-600,
+  button.bg-sky-600,
+  a.bg-slate-900,
+  button.bg-slate-900 {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  }
+}
+
+@keyframes spinner-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+@keyframes draw-check {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ==================================================================
+ * Dashboard (app/dashboard, components/dash) in the ischgl.com look
+ * ==================================================================
+ *
+ * Same rules as above: square corners, the
+ * crimson as the one accent, uppercase display type for labels and headings.
+ *
+ * Chart colours (SKILL.md, "Chart colours"):
+ *   actual = crimson, forecast = grey (dashed), last year = amber,
+ *   capacity / peers = light grey, grid = #eef0f2.
+ *   The sequential ramp (holiday coverage, booking window) runs from a pale
+ *   crimson tint to a deep wine.
+ * ================================================================== */
+
+/* Off-brand Tailwind palettes used in older components, mapped onto the brand:
+   indigo becomes the neutral dark grey, purple the Ischgl wine accent. */
+@theme {
+  --color-indigo-50: #f1f2f4;
+  --color-indigo-100: #e4e6e9;
+  --color-indigo-200: #cfd2d6;
+  --color-indigo-300: #a3a7ad;
+  --color-indigo-400: #6f747a;
+  --color-indigo-500: #55595e;
+  --color-indigo-600: #3f4246;
+  --color-indigo-700: #313131;
+  --color-indigo-800: #1a1a1a;
+  --color-indigo-900: #1a1a1a;
+  --color-indigo-950: #111111;
+
+  --color-purple-50: #f8eff1;
+  --color-purple-100: #f0dde2;
+  --color-purple-200: #e0bac4;
+  --color-purple-300: #c98a9b;
+  --color-purple-400: #b06177;
+  --color-purple-500: #99364d;
+  --color-purple-600: #99364d;
+  --color-purple-700: #7d2c3f;
+  --color-purple-800: #5f2130;
+  --color-purple-900: #431722;
+  --color-purple-950: #2b0f16;
+}
+
+:root {
+  --viz-surface: #ffffff;
+  --viz-actual: var(--accent);
+  --viz-actual-wash: color-mix(in srgb, var(--accent) 9%, transparent);
+  --viz-py: #f59e0b;
+  --viz-forecast: #6f747a;
+  --viz-grid: #eef0f2;
+  --viz-axis: #cfd2d6;
+  --viz-ink: #1a1a1a;
+  --viz-ink-2: #55595e;
+  --viz-ink-muted: #6f747a;
+  --viz-peer: #a3a7ad;
+
+  --seq-100: color-mix(in srgb, var(--accent) 10%, #ffffff);
+  --seq-200: color-mix(in srgb, var(--accent) 24%, #ffffff);
+  --seq-300: color-mix(in srgb, var(--accent) 42%, #ffffff);
+  --seq-400: color-mix(in srgb, var(--accent) 68%, #ffffff);
+  --seq-500: var(--accent);
+  --seq-550: color-mix(in srgb, var(--accent) 78%, #000000);
+  --seq-700: color-mix(in srgb, var(--accent) 52%, #000000);
+
+  --status-good: #12862b;
+  --status-warning: #fbbd03;
+  --status-serious: #ec835a;
+  --status-critical: #cc2333;
+  --delta-good: #12862b;
+  --delta-bad: #cc2333;
+}
+
+@layer components {
+  .dash-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .dash-h2 {
+    font-family: var(--font-heading);
+    font-size: 0.9375rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .dash-sub {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .dash-card {
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px rgb(17 17 17 / 0.04);
+  }
+  @media (min-width: 40rem) {
+    .dash-card {
+      padding: 1.5rem;
+    }
+  }
+  .dash-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.125rem;
+  }
+
+  /* KPI tiles: a crimson bar grows along the top edge on hover */
+  .kpi-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 1.125rem 1.125rem 1rem;
+    transition:
+      box-shadow 0.35s ease,
+      transform 0.35s ease;
+  }
+  .kpi-tile::before {
+    content: "";
+    position: absolute;
+    inset: -1px -1px auto;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .kpi-tile:hover {
+    box-shadow: var(--shadow-premium);
+    transform: translateY(-2px);
+  }
+  .kpi-tile:hover::before {
+    transform: scaleX(1);
+  }
+  .kpi-label {
+    font-family: var(--font-heading);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .kpi-value {
+    font-family: var(--font-heading);
+    font-size: 1.875rem;
+    font-weight: 800;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+  .kpi-foot {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .delta-good {
+    color: var(--delta-good);
+  }
+  .delta-bad {
+    color: var(--delta-bad);
+  }
+  .delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  /* Tabs: uppercase display labels on a hairline, the active one gets a 3px crimson underline */
+  .tab-list {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--line);
+    scrollbar-width: none;
+  }
+  .tab-list::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0.5rem 0.875rem;
+    white-space: nowrap;
+    background: transparent;
+    border: 0;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .tab::after {
+    content: "";
+    position: absolute;
+    left: 0.875rem;
+    right: 0.875rem;
+    bottom: -1px;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .tab:hover {
+    color: var(--text);
+  }
+  .tab[aria-selected="true"] {
+    color: var(--text);
+  }
+  .tab[aria-selected="true"]::after {
+    transform: scaleX(1);
+  }
+  .tab[aria-selected="true"] svg {
+    color: var(--accent);
+  }
+  .tab:focus-visible,
+  .seg-btn:focus-visible,
+  .row-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Segmented control (season / granularity filters) */
+  .seg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .seg-btn {
+    min-height: 2rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--line-field);
+    font-family: var(--font-heading);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s;
+  }
+  .seg-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+  .seg-btn[aria-pressed="true"] {
+    background: var(--text);
+    border-color: var(--text);
+    color: #ffffff;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    font-size: 0.75rem;
+    color: var(--viz-ink-2);
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend-line {
+    display: inline-block;
+    width: 18px;
+    height: 0;
+    border-top: 2px solid currentColor;
+  }
+  .legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+  }
+
+  /* Chart tooltip */
+  .viz-tooltip {
+    position: absolute;
+    z-index: 10;
+    min-width: 180px;
+    max-width: 260px;
+    pointer-events: none;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    box-shadow: 0 1.25rem 2.25rem #16161633;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--viz-ink);
+  }
+  .viz-tooltip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Gap chip, always with sign and number (never colour alone) */
+  .gap-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .gap-chip.neg {
+    background: #fdecee;
+    color: var(--delta-bad);
+  }
+  .gap-chip.pos {
+    background: #e8f5ea;
+    color: var(--delta-good);
+  }
+  .gap-chip.flat {
+    background: var(--surface-muted);
+    color: var(--text-muted);
+  }
+
+  /* Clickable table rows / list rows */
+  .row-btn {
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .dash-table th {
+    font-family: var(--font-heading);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .dash-table tbody tr {
+    cursor: pointer;
+  }
+  .dash-table tbody tr:hover td {
+    background: var(--accent-light);
+  }
+  .dash-table th button {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+  }
+  .dash-table th button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .num,
+  .table-wrap th.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .table-wrap th.num button {
+    justify-content: flex-end;
+  }
+
+  /* Holiday heatmap */
+  .heat-cell {
+    width: 100%;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .heat-cell:hover {
+    transform: scaleY(1.12);
+  }
+  .heat-cell:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 1px;
+  }
+
+  /* Side panel (week detail) */
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgb(22 22 22 / 0.45);
+    backdrop-filter: blur(2px);
+    animation: fade-in 0.25s ease both;
+  }
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 61;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: min(480px, 100vw);
+    overflow-y: auto;
+    background: var(--surface);
+    border-top: 4px solid var(--accent);
+    box-shadow: 0 2rem 3.125rem #1616164d;
+    padding: 1.5rem;
+    animation: drawer-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .source-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .source-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(2.5rem);
+    opacity: 0;
+  }
+}
+
+/* ---------- Change Explainer agent (AGENT_PLAN.md) — built only from the tokens above ---------- */
+@layer components {
+  /* Reason card: dash-card with the signature cut top-right corner and a rank number */
+  .reason-card {
+    --cut: 1.25rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    padding: 1.125rem 1.25rem 1rem;
+    clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+    transition:
+      box-shadow 0.35s ease,
+      transform 0.35s ease;
+  }
+  .reason-card:hover {
+    box-shadow: var(--shadow-premium);
+  }
+  .reason-card[data-kind="hypothesis"] {
+    border-left-style: dashed;
+    border-left-color: var(--text-muted);
+    background: var(--surface-muted);
+  }
+  .reason-card[data-ignored="true"] {
+    opacity: 0.55;
+  }
+  .reason-rank {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .reason-card[data-kind="hypothesis"] .reason-rank {
+    color: var(--text-muted);
+  }
+  .reason-title {
+    font-family: var(--font-heading);
+    font-size: 0.9375rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1.25;
+    text-transform: uppercase;
+    text-wrap: balance;
+    color: var(--text);
+  }
+
+  /* Evidence chip: square-ish, 2px radius max, label + now vs ref */
+  .evidence-chip {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.375rem;
+    max-width: 100%;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: var(--surface-muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .evidence-chip b {
+    font-variant-numeric: tabular-nums;
+  }
+  .evidence-chip .src {
+    color: var(--text-muted);
+  }
+
+  /* Share bar (how much of the change a reason / the remainder accounts for) */
+  .share-bar {
+    position: relative;
+    height: 6px;
+    width: 100%;
+    background: var(--surface-muted);
+    overflow: hidden;
+  }
+  .share-bar > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--accent);
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .share-bar[data-tone="muted"] > span {
+    background: var(--viz-peer);
+  }
+
+  /* Vote buttons: outline squares, pressed state filled black */
+  .vote-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--line-field);
+    font-family: var(--font-heading);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      color 0.2s;
+  }
+  .vote-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+  .vote-btn[aria-pressed="true"] {
+    background: var(--text);
+    border-color: var(--text);
+    color: #ffffff;
+  }
+  .vote-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .vote-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Bell count bubble (round elements are allowed for badges) */
+  .bell-count {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.1rem;
+    min-width: 1.05rem;
+    height: 1.05rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.625rem;
+    font-weight: 800;
+    line-height: 1.05rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Toast for a new alert: bottom right, crimson top border like the tooltip */
+  .toast {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 70;
+    width: min(22rem, calc(100vw - 2rem));
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--accent);
+    box-shadow: 0 2rem 3.125rem #1616164d;
+    padding: 1rem 1.125rem;
+    animation: drawer-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Alert inbox row */
+  .alert-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    transition: background-color 0.2s;
+  }
+  .alert-row:hover {
+    background: var(--accent-light);
+  }
+  .alert-row[data-unread="true"] {
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+}
+
+/* ==================================================================
+ * Dark mode: <html class="dark">, switched in components/ThemeToggle.
+ * The slate scale is inverted, so every text-slate-* / bg-slate-* / border-slate-*
+ * class follows without touching the components. Filled dark blocks (white text on
+ * bg-slate-900) get an explicit dark grey below.
+ * ================================================================== */
+:root {
+  --bar-ink: #1a1a1a; /* fill of the "expected" part in bars */
+}
+
+html.dark {
+  color-scheme: dark;
+  --background: #0f1115;
+  --surface: #171a20;
+  --surface-muted: #1d2128;
+  --line: #2b3039;
+  --line-field: #3a404b;
+  --text: #eceef1;
+  --text-muted: #9aa1ab;
+  --accent-light: color-mix(in srgb, var(--accent) 18%, #171a20);
+  --accent-border: color-mix(in srgb, var(--accent) 40%, #171a20);
+  --shadow-premium: 0 1px 2px rgb(0 0 0 / 0.4), 0 18px 40px -18px rgb(0 0 0 / 0.7);
+  --bar-ink: #d5d9df;
+
+  --color-slate-50: #1b1f26;
+  --color-slate-100: #20252d;
+  --color-slate-200: #2b3039;
+  --color-slate-300: #3a404b;
+  --color-slate-400: #7d8590;
+  --color-slate-500: #98a0aa;
+  --color-slate-600: #b3bac3;
+  --color-slate-700: #ccd1d8;
+  --color-slate-800: #e0e3e8;
+  --color-slate-900: #f2f4f6;
+  --color-slate-950: #ffffff;
+
+  --color-indigo-50: #20252d;
+  --color-indigo-100: #2b3039;
+  --color-indigo-200: #3a404b;
+  --color-indigo-300: #7d8590;
+  --color-indigo-400: #98a0aa;
+  --color-indigo-500: #b3bac3;
+  --color-indigo-600: #ccd1d8;
+  --color-indigo-700: #e0e3e8;
+  --color-indigo-800: #f2f4f6;
+  --color-indigo-900: #f2f4f6;
+
+  --viz-surface: #171a20;
+  --viz-grid: #262b33;
+  --viz-axis: #3a404b;
+  --viz-ink: #eceef1;
+  --viz-ink-2: #b3bac3;
+  --viz-ink-muted: #9aa1ab;
+  --viz-peer: #5b626c;
+  --viz-forecast: #98a0aa;
+  --delta-good: #3fbf5a;
+  --delta-bad: #ff6b7f;
+  --seq-100: color-mix(in srgb, var(--accent) 14%, #171a20);
+  --seq-200: color-mix(in srgb, var(--accent) 28%, #171a20);
+  --seq-300: color-mix(in srgb, var(--accent) 46%, #171a20);
+
+  --color-sky-50: color-mix(in srgb, var(--accent) 12%, #171a20);
+  --color-sky-100: color-mix(in srgb, var(--accent) 20%, #171a20);
+  --color-sky-200: color-mix(in srgb, var(--accent) 32%, #171a20);
+}
+
+html.dark .bg-white { background-color: var(--surface); }
+html.dark .bg-white\/90 { background-color: color-mix(in srgb, var(--surface) 90%, transparent); }
+html.dark .bg-white\/95 { background-color: color-mix(in srgb, var(--surface) 95%, transparent); }
+html.dark .hover\:bg-white:hover { background-color: var(--surface); }
+html.dark .bg-slate-900,
+html.dark .hover\:bg-slate-900:hover { background-color: #343942; }
+html.dark .text-accent { color: color-mix(in srgb, var(--accent) 65%, #ffffff); }
+html.dark .btn-secondary { color: var(--text); }
+html.dark .notice-error { background: #2a1519; border-color: #5c2a33; border-left-color: #ef4444; color: #fca5a5; }
+html.dark .badge-green { background: #0f2a20; border-color: #1f5a43; color: #6ee7b7; }
+html.dark .badge-yellow { background: #2e2410; border-color: #6b5320; color: #fcd34d; }
+html.dark .badge-red { background: #2a1519; border-color: #5c2a33; color: #fca5a5; }
+html.dark .badge-gray { background: #20252d; border-color: #2b3039; color: #ccd1d8; }
+html.dark .bg-dots { background-image: radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px); }
+html.dark .skeleton { background: linear-gradient(90deg, #1d2128 0%, #272c35 50%, #1d2128 100%); }
+html.dark img[alt="Ischgl"] { filter: brightness(0) invert(1); }
+html.dark svg[viewBox="0 0 1440 420"] { opacity: 0.18; }
+html.dark .seg-btn[aria-pressed="true"] { color: #0f1115; }
+html.dark .btn-secondary:hover:not(:disabled) { color: #0f1115; }

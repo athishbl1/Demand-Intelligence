@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "buildbar": {
+      "type": "remote",
+      "url": "https://hub.ttf.buildbar.at/g/<YOUR-TEAM-TOKEN>/mcp",
+      "enabled": true,
+      "oauth": false,
+      "timeout": 180000
+    }
+  }
+}
